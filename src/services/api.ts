@@ -5,9 +5,131 @@
 import type { Product, Category, ApiResponse } from "../types";
 import { allProducts, shopCategories } from "../data/products";
 
-const BASE_URL = import.meta.env.VITE_API_URL ?? "";
+export const DEFAULT_PRODUCTION_API_URL = "https://pluxpc-api.onrender.com";
 
-function authHeaders(token?: string | null) {
+/**
+ * Resolves the backend API base URL with safe defaults:
+ * - If VITE_API_URL is configured (e.g. via Vercel env), use it (trimmed, without trailing slash)
+ * - In production mode (Vercel builds), fall back to the live Render backend rather than an empty string
+ * - In development mode, fall back to "" to leverage Vite's local dev proxy (/api -> localhost:5000)
+ */
+export function resolveBaseUrl(): string {
+  const env = (typeof import.meta !== "undefined" && (import.meta as any).env) || {};
+  const processEnv = (typeof globalThis !== "undefined" && (globalThis as any).process?.env) || {};
+  const envUrl = (env.VITE_API_URL || processEnv.VITE_API_URL || "").trim();
+  if (envUrl) {
+    return envUrl.replace(/\/+$/, "");
+  }
+  if (env.DEV) {
+    return "";
+  }
+  return DEFAULT_PRODUCTION_API_URL;
+}
+
+const BASE_URL = resolveBaseUrl();
+
+export class ApiError extends Error {
+  status?: number;
+  data?: any;
+
+  constructor(message: string, status?: number, data?: any) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.data = data;
+  }
+}
+
+/**
+ * Safely parses the response body without throwing unhandled SyntaxErrors on empty or HTML responses.
+ */
+async function parseResponse<T = any>(res: Response): Promise<T> {
+  const contentType = res.headers.get("content-type") || "";
+  let data: any = null;
+
+  if (contentType.includes("application/json")) {
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
+    }
+  } else {
+    const text = await res.text().catch(() => "");
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = null;
+      }
+    }
+  }
+
+  if (!res.ok) {
+    // If backend provided a structured error object with a message, preserve it
+    if (data && typeof data === "object" && typeof data.message === "string") {
+      return {
+        success: false,
+        ...data,
+      } as T;
+    }
+
+    let detail = "Server request failed.";
+    if (res.status === 405) {
+      detail = "Method Not Allowed (405). The request was sent to a static host or invalid route.";
+    } else if (res.status === 404) {
+      detail = "Endpoint Not Found (404). Please verify backend URL.";
+    } else if (res.status === 401 || res.status === 403) {
+      detail = "Authentication failed or access denied.";
+    } else if (res.status === 502 || res.status === 503) {
+      detail = "Backend server is waking up (cold start). Please retry in a few moments.";
+    }
+
+    const message = data?.message || data?.error || detail;
+    throw new ApiError(message, res.status, data);
+  }
+
+  if (data === null) {
+    return { success: true } as T;
+  }
+
+  return data as T;
+}
+
+/**
+ * Centralized fetch wrapper ensuring:
+ * - Proper URL resolution with BASE_URL
+ * - Network & CORS failure detection
+ * - Safe response parsing
+ */
+export async function apiFetch<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  const url = endpoint.startsWith("http://") || endpoint.startsWith("https://")
+    ? endpoint
+    : `${BASE_URL}${endpoint}`;
+
+  try {
+    const res = await fetch(url, options);
+    return await parseResponse<T>(res);
+  } catch (err: any) {
+    if (err instanceof ApiError) {
+      throw err;
+    }
+
+    // Network or CORS failure
+    if (
+      err.name === "TypeError" &&
+      (err.message?.toLowerCase().includes("fetch") || err.message?.toLowerCase().includes("network"))
+    ) {
+      throw new ApiError(
+        `Unable to reach backend API at ${BASE_URL || "configured URL"}. Please check network connection, server health, and CORS permissions.`,
+        0
+      );
+    }
+
+    throw err;
+  }
+}
+
+function authHeaders(token?: string | null): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -34,16 +156,13 @@ export async function fetchProducts(
     if (q) params.append("q", q);
 
     params.append("_t", Date.now().toString());
-    const url = `${BASE_URL}/api/products${params.toString() ? `?${params.toString()}` : ""}`;
-    const res = await fetch(url, {
+    const queryStr = params.toString() ? `?${params.toString()}` : "";
+    const data = await apiFetch<any>(`/api/products${queryStr}`, {
       cache: "no-store",
       headers: { "Cache-Control": "no-cache, no-store, must-revalidate" },
     });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-        return { success: true, data: data.data };
-      }
+    if (data && data.success && Array.isArray(data.data) && data.data.length > 0) {
+      return { success: true, data: data.data };
     }
   } catch (err) {
     console.warn("[PLUXPC API] Backend unreachable, falling back to mock data:", err);
@@ -67,15 +186,12 @@ export async function fetchProducts(
 
 export async function fetchProductBySlug(slug: string): Promise<ApiResponse<Product | null>> {
   try {
-    const res = await fetch(`${BASE_URL}/api/products/${slug}?_t=${Date.now()}`, {
+    const data = await apiFetch<any>(`/api/products/${slug}?_t=${Date.now()}`, {
       cache: "no-store",
       headers: { "Cache-Control": "no-cache, no-store, must-revalidate" },
     });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && data.data) {
-        return { success: true, data: data.data };
-      }
+    if (data && data.success && data.data) {
+      return { success: true, data: data.data };
     }
   } catch (err) {
     console.warn("[PLUXPC API] Product lookup fallback:", err);
@@ -87,12 +203,9 @@ export async function fetchProductBySlug(slug: string): Promise<ApiResponse<Prod
 
 export async function fetchCategories(): Promise<ApiResponse<Category[]>> {
   try {
-    const res = await fetch(`${BASE_URL}/api/categories`);
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-        return { success: true, data: data.data };
-      }
+    const data = await apiFetch<any>("/api/categories");
+    if (data && data.success && Array.isArray(data.data) && data.data.length > 0) {
+      return { success: true, data: data.data };
     }
   } catch (err) {
     console.warn("[PLUXPC API] Categories lookup fallback:", err);
@@ -102,7 +215,7 @@ export async function fetchCategories(): Promise<ApiResponse<Category[]>> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ADMIN API (Protected)
+// ADMIN API (Protected - Preserved for cross-compatibility)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface AdminAuthResponse {
@@ -118,103 +231,91 @@ export interface AdminAuthResponse {
 }
 
 export async function adminLogin(email: string, password: string): Promise<AdminAuthResponse> {
-  const res = await fetch(`${BASE_URL}/api/admin/auth/login`, {
+  return apiFetch<AdminAuthResponse>("/api/admin/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
-  return res.json();
 }
 
 export async function adminGetMe(token?: string) {
-  const res = await fetch(`${BASE_URL}/api/admin/auth/me`, {
+  return apiFetch("/api/admin/auth/me", {
     headers: authHeaders(token),
   });
-  return res.json();
 }
 
 export async function adminGetDashboard(token?: string) {
-  const res = await fetch(`${BASE_URL}/api/admin/dashboard`, {
+  return apiFetch("/api/admin/dashboard", {
     headers: authHeaders(token),
   });
-  return res.json();
 }
 
 // Admin Products CRUD
 export async function adminGetProducts(params?: { q?: string; category?: string; inStock?: string }) {
   const query = new URLSearchParams(params as Record<string, string>).toString();
-  const res = await fetch(`${BASE_URL}/api/admin/products${query ? `?${query}` : ""}`, {
+  return apiFetch(`/api/admin/products${query ? `?${query}` : ""}`, {
     headers: authHeaders(),
   });
-  return res.json();
 }
 
 export async function adminGetProductById(id: string) {
-  const res = await fetch(`${BASE_URL}/api/admin/products/${id}`, {
+  return apiFetch(`/api/admin/products/${id}`, {
     headers: authHeaders(),
   });
-  return res.json();
 }
 
 export async function adminCreateProduct(data: Partial<Product>) {
-  const res = await fetch(`${BASE_URL}/api/admin/products`, {
+  return apiFetch("/api/admin/products", {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  return res.json();
 }
 
 export async function adminUpdateProduct(id: string, data: Partial<Product>) {
-  const res = await fetch(`${BASE_URL}/api/admin/products/${id}`, {
+  return apiFetch(`/api/admin/products/${id}`, {
     method: "PATCH",
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  return res.json();
 }
 
 export async function adminDeleteProduct(id: string) {
-  const res = await fetch(`${BASE_URL}/api/admin/products/${id}`, {
+  return apiFetch(`/api/admin/products/${id}`, {
     method: "DELETE",
     headers: authHeaders(),
   });
-  return res.json();
 }
 
 // Admin Categories CRUD
 export async function adminGetCategories(params?: { q?: string }) {
   const query = new URLSearchParams(params as Record<string, string>).toString();
-  const res = await fetch(`${BASE_URL}/api/admin/categories${query ? `?${query}` : ""}`, {
+  return apiFetch(`/api/admin/categories${query ? `?${query}` : ""}`, {
     headers: authHeaders(),
   });
-  return res.json();
 }
 
 export async function adminCreateCategory(data: { name: string; slug?: string; imageUrl: string; description?: string }) {
-  const res = await fetch(`${BASE_URL}/api/admin/categories`, {
+  return apiFetch("/api/admin/categories", {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  return res.json();
 }
 
 export async function adminUpdateCategory(id: string, data: Partial<Category>) {
-  const res = await fetch(`${BASE_URL}/api/admin/categories/${id}`, {
+  return apiFetch(`/api/admin/categories/${id}`, {
     method: "PATCH",
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  return res.json();
 }
 
 export async function adminDeleteCategory(id: string) {
-  const res = await fetch(`${BASE_URL}/api/admin/categories/${id}`, {
+  return apiFetch(`/api/admin/categories/${id}`, {
     method: "DELETE",
     headers: authHeaders(),
   });
-  return res.json();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -259,34 +360,34 @@ export async function customerRegister(data: {
   email: string;
   password: string;
   confirmPassword?: string;
-}) {
-  const res = await fetch(`${BASE_URL}/api/auth/register`, {
+}): Promise<{ success: boolean; token?: string; user?: any; message?: string }> {
+  return apiFetch("/api/auth/register", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-  return res.json();
 }
 
-export async function customerLogin(credentials: { email: string; password: string }) {
-  const res = await fetch(`${BASE_URL}/api/auth/login`, {
+export async function customerLogin(credentials: {
+  email: string;
+  password: string;
+}): Promise<{ success: boolean; token?: string; user?: any; message?: string }> {
+  return apiFetch("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(credentials),
   });
-  return res.json();
 }
 
-export async function customerGetProfile(token?: string | null) {
-  const res = await fetch(`${BASE_URL}/api/auth/me`, {
+export async function customerGetProfile(token?: string | null): Promise<{ success: boolean; user?: any; message?: string }> {
+  return apiFetch("/api/auth/me", {
     headers: customerHeaders(token),
   });
-  return res.json();
 }
 
-export async function customerLogout() {
+export async function customerLogout(): Promise<void> {
   try {
-    await fetch(`${BASE_URL}/api/auth/logout`, {
+    await apiFetch("/api/auth/logout", {
       method: "POST",
       headers: customerHeaders(),
     });
@@ -298,44 +399,39 @@ export async function customerLogout() {
 }
 
 export async function customerGetCart(token?: string | null) {
-  const res = await fetch(`${BASE_URL}/api/cart`, {
+  return apiFetch("/api/cart", {
     headers: customerHeaders(token),
   });
-  return res.json();
 }
 
 export async function customerAddToCart(productId: string, quantity = 1, token?: string | null) {
-  const res = await fetch(`${BASE_URL}/api/cart/items`, {
+  return apiFetch("/api/cart/items", {
     method: "POST",
     headers: customerHeaders(token),
     body: JSON.stringify({ productId, quantity }),
   });
-  return res.json();
 }
 
 export async function customerUpdateCartItem(productId: string, quantity: number, token?: string | null) {
-  const res = await fetch(`${BASE_URL}/api/cart/items/${productId}`, {
+  return apiFetch(`/api/cart/items/${productId}`, {
     method: "PATCH",
     headers: customerHeaders(token),
     body: JSON.stringify({ quantity }),
   });
-  return res.json();
 }
 
 export async function customerRemoveCartItem(productId: string, token?: string | null) {
-  const res = await fetch(`${BASE_URL}/api/cart/items/${productId}`, {
+  return apiFetch(`/api/cart/items/${productId}`, {
     method: "DELETE",
     headers: customerHeaders(token),
   });
-  return res.json();
 }
 
 export async function customerClearCart(token?: string | null) {
-  const res = await fetch(`${BASE_URL}/api/cart`, {
+  return apiFetch("/api/cart", {
     method: "DELETE",
     headers: customerHeaders(token),
   });
-  return res.json();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -343,47 +439,42 @@ export async function customerClearCart(token?: string | null) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function customerGetWishlist(token?: string | null) {
-  const res = await fetch(`${BASE_URL}/api/wishlist`, {
+  return apiFetch("/api/wishlist", {
     headers: customerHeaders(token),
   });
-  return res.json();
 }
 
 export async function customerAddToWishlist(productId: string, token?: string | null) {
-  const res = await fetch(`${BASE_URL}/api/wishlist/items`, {
+  return apiFetch("/api/wishlist/items", {
     method: "POST",
     headers: customerHeaders(token),
     body: JSON.stringify({ productId }),
   });
-  return res.json();
 }
 
 export async function customerRemoveFromWishlist(productId: string, token?: string | null) {
-  const res = await fetch(`${BASE_URL}/api/wishlist/items/${productId}`, {
+  return apiFetch(`/api/wishlist/items/${productId}`, {
     method: "DELETE",
     headers: customerHeaders(token),
   });
-  return res.json();
 }
 
 export async function customerClearWishlist(token?: string | null) {
-  const res = await fetch(`${BASE_URL}/api/wishlist`, {
+  return apiFetch("/api/wishlist", {
     method: "DELETE",
     headers: customerHeaders(token),
   });
-  return res.json();
 }
 
 export async function customerMergeWishlist(
   items: Array<{ productId: string } | string>,
   token?: string | null
 ) {
-  const res = await fetch(`${BASE_URL}/api/wishlist/merge`, {
+  return apiFetch("/api/wishlist/merge", {
     method: "POST",
     headers: customerHeaders(token),
     body: JSON.stringify({ items }),
   });
-  return res.json();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -391,8 +482,7 @@ export async function customerMergeWishlist(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export async function getRazorpayConfig() {
-  const res = await fetch(`${BASE_URL}/api/payments/config`);
-  return res.json();
+  return apiFetch("/api/payments/config");
 }
 
 export async function createPaymentOrder(
@@ -407,12 +497,11 @@ export async function createPaymentOrder(
   token?: string | null,
   promoCode?: string
 ) {
-  const res = await fetch(`${BASE_URL}/api/payments/create-order`, {
+  return apiFetch("/api/payments/create-order", {
     method: "POST",
     headers: customerHeaders(token),
     body: JSON.stringify({ deliveryAddress, promoCode }),
   });
-  return res.json();
 }
 
 export async function validatePromoCode(
@@ -420,22 +509,21 @@ export async function validatePromoCode(
   items: Array<{ product: string; quantity: number; price?: number }>,
   token?: string | null
 ) {
-  const res = await fetch(`${BASE_URL}/api/promotions/validate`, {
+  return apiFetch("/api/promotions/validate", {
     method: "POST",
     headers: customerHeaders(token),
     body: JSON.stringify({ code, items }),
   });
-  return res.json();
 }
 
 export async function fetchActivePromotions() {
   try {
-    const res = await fetch(`${BASE_URL}/api/promotions/active?_t=${Date.now()}`, {
+    const data = await apiFetch<any>(`/api/promotions/active?_t=${Date.now()}`, {
       cache: "no-store",
       headers: { "Cache-Control": "no-cache, no-store, must-revalidate" },
     });
-    if (res.ok) {
-      return await res.json();
+    if (data && (data.success || Array.isArray(data.promotions))) {
+      return data;
     }
   } catch (err) {
     console.warn("[PLUXPC API] Active promotions unreachable:", err);
@@ -445,12 +533,12 @@ export async function fetchActivePromotions() {
 
 export async function fetchPlatformFeeConfig() {
   try {
-    const res = await fetch(`${BASE_URL}/api/platform-fee/config?_t=${Date.now()}`, {
+    const data = await apiFetch<any>(`/api/platform-fee/config?_t=${Date.now()}`, {
       cache: "no-store",
       headers: { "Cache-Control": "no-cache, no-store, must-revalidate" },
     });
-    if (res.ok) {
-      return await res.json();
+    if (data && (data.success || data.settings)) {
+      return data;
     }
   } catch (err) {
     console.warn("[PLUXPC API] Platform fee config unreachable:", err);
@@ -460,13 +548,13 @@ export async function fetchPlatformFeeConfig() {
 
 export async function calculatePlatformFeeQuote(subtotal: number) {
   try {
-    const res = await fetch(`${BASE_URL}/api/platform-fee/calculate`, {
+    const data = await apiFetch<any>("/api/platform-fee/calculate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ subtotal }),
     });
-    if (res.ok) {
-      return await res.json();
+    if (data && (data.success || typeof data.platformFee === "number")) {
+      return data;
     }
   } catch (err) {
     console.warn("[PLUXPC API] Platform fee quote unreachable:", err);
@@ -483,26 +571,23 @@ export async function verifyPayment(
   },
   token?: string | null
 ) {
-  const res = await fetch(`${BASE_URL}/api/payments/verify`, {
+  return apiFetch("/api/payments/verify", {
     method: "POST",
     headers: customerHeaders(token),
     body: JSON.stringify(data),
   });
-  return res.json();
 }
 
 export async function getCustomerOrders(token?: string | null) {
-  const res = await fetch(`${BASE_URL}/api/orders/my-orders`, {
+  return apiFetch("/api/orders/my-orders", {
     headers: customerHeaders(token),
   });
-  return res.json();
 }
 
 export async function getOrderById(orderId: string, token?: string | null) {
-  const res = await fetch(`${BASE_URL}/api/orders/${orderId}`, {
+  return apiFetch(`/api/orders/${orderId}`, {
     headers: customerHeaders(token),
   });
-  return res.json();
 }
 
 export { BASE_URL };
