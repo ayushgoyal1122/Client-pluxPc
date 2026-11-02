@@ -39,7 +39,7 @@
 
   /* ── Containers ── */
   .vx-container {
-    @apply max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8;
+    @apply w-full max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8;
   }
 
   /* ── Section headings (boAt style: "Top <u>Deals</u>") ── */

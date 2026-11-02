@@ -26,6 +26,7 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
     : null;
 
   const wishlisted = isWishlisted(product.id);
+  const hasFeatureStrip = Boolean(product.featureTag);
 
   const handleAdd = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -55,13 +56,19 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
   };
 
   return (
-    <Link to={`/products/${product.slug}`} className="vx-card group block flex-shrink-0">
+    <Link to={`/products/${product.slug}`} className="vx-card group block flex-shrink-0 w-full">
       {/* ── Image area ── */}
-      <div className={`relative overflow-hidden bg-[#F1F3F5] ${compact ? "aspect-square" : "aspect-[4/3.5]"}`}>
+      <div
+        className={`relative overflow-hidden bg-[#F1F3F5] flex items-center justify-center ${
+          compact ? "aspect-square" : "aspect-[4/3.5]"
+        }`}
+      >
         <img
           src={product.imageUrl}
           alt={product.name}
-          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+          className={`w-full h-full object-contain object-center transition-transform duration-300 group-hover:scale-105 ${
+            hasFeatureStrip ? "p-2.5 pb-7 sm:p-3 sm:pb-8" : "p-2.5 sm:p-3"
+          }`}
           loading="lazy"
           onError={(e) => handleImageError(e, product.categoryLabel || product.name)}
         />

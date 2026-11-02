@@ -9,7 +9,7 @@ export default function RootLayout() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       {!hideNavbar && <Navbar />}
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col w-full min-w-0">
         <Outlet />
       </main>
       <Footer />
