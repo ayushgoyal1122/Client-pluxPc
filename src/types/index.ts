@@ -259,3 +259,57 @@ export interface PlatformFeeConfig {
   minFee?: number | null;
   maxFee?: number | null;
 }
+
+// ─── Blog Types ─────────────────────────────────────────────────────────────
+export interface Blog {
+  _id: string;
+  id?: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  coverImage: string;
+  category: string;
+  categorySlug?: string;
+  author: string;
+  authorRole?: string;
+  authorAvatar?: string;
+  tags?: string[];
+  status: "draft" | "published";
+  readTime: string;
+  views: number;
+  isFeatured: boolean;
+  metaTitle?: string;
+  metaDescription?: string;
+  publishedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface BlogCategory {
+  name: string;
+  slug: string;
+  count: number;
+}
+
+export interface BlogListResponse {
+  success: boolean;
+  count: number;
+  total: number;
+  page: number;
+  totalPages: number;
+  blogs: Blog[];
+}
+
+export interface BlogDetailResponse {
+  success: boolean;
+  blog: Blog;
+  relatedBlogs: Blog[];
+}
+
+export interface BlogFeaturedResponse {
+  success: boolean;
+  featured: Blog | null;
+  popular: Blog[];
+}
+

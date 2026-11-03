@@ -17,7 +17,7 @@ const FOOTER_COLS = [
       { name: "About PLUXPC", href: "/about" },
       { name: "Careers", href: "#" },
       { name: "Press & Media", href: "#" },
-      { name: "Blog", href: "#" },
+      { name: "Blog", href: "/blog" },
       { name: "Admin Portal", href: "/admin/login" },
     ],
   },

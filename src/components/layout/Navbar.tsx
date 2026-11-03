@@ -103,6 +103,14 @@ export default function Navbar() {
               </div>
             )}
           </div>
+
+          {/* Editorial Blog Link */}
+          <Link
+            to="/blog"
+            className="hidden sm:inline-flex items-center px-3 py-2 text-[14px] font-semibold text-gray-700 hover:text-[#E31E24] rounded-md hover:bg-gray-50 transition-colors"
+          >
+            Blog
+          </Link>
         </div>
 
         {/* Right side: Search Bar + 2 Icons (Wishlist & Cart) */}
@@ -302,6 +310,14 @@ export default function Navbar() {
           </form>
           {/* Mobile nav links */}
           <div className="pb-4">
+            <Link
+              to="/blog"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center justify-between px-5 py-3 text-[14px] font-bold text-gray-900 hover:bg-gray-50 border-b border-gray-100 bg-red-50/50"
+            >
+              <span className="text-[#E31E24]">Hardware Lab & Blog</span>
+              <span className="text-[10px] bg-[#E31E24] text-white px-2 py-0.5 rounded-full uppercase font-bold">New</span>
+            </Link>
             {shopCategories.map((cat) => (
               <Link
                 key={cat.id}

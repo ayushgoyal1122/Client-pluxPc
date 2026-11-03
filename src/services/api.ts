@@ -590,4 +590,37 @@ export async function getOrderById(orderId: string, token?: string | null) {
   });
 }
 
+// ── Blog API Functions ──
+export async function getBlogs(params?: {
+  page?: number;
+  limit?: number;
+  category?: string;
+  search?: string;
+  tag?: string;
+  sort?: "latest" | "popular" | "oldest";
+}) {
+  const query = new URLSearchParams();
+  if (params?.page) query.set("page", String(params.page));
+  if (params?.limit) query.set("limit", String(params.limit));
+  if (params?.category) query.set("category", params.category);
+  if (params?.search) query.set("search", params.search);
+  if (params?.tag) query.set("tag", params.tag);
+  if (params?.sort) query.set("sort", params.sort);
+
+  const qs = query.toString();
+  return apiFetch<any>(`/api/blogs${qs ? `?${qs}` : ""}`);
+}
+
+export async function getFeaturedBlogs() {
+  return apiFetch<any>("/api/blogs/featured");
+}
+
+export async function getBlogCategories() {
+  return apiFetch<any>("/api/blogs/categories");
+}
+
+export async function getBlogBySlug(slug: string) {
+  return apiFetch<any>(`/api/blogs/${encodeURIComponent(slug)}`);
+}
+
 export { BASE_URL };

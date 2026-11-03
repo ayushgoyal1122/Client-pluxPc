@@ -166,11 +166,10 @@ export default function ProductsPage() {
             disabled={!canScrollLeft}
             aria-label="Previous categories"
             title="Scroll previous categories"
-            className={`flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center border transition-all duration-200 select-none ${
-              canScrollLeft
-                ? "bg-white hover:bg-gray-100 text-gray-800 border-gray-300 shadow-2xs cursor-pointer hover:scale-105 active:scale-95"
-                : "bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed opacity-35"
-            }`}
+            className={`flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center border transition-all duration-200 select-none ${canScrollLeft
+              ? "bg-white hover:bg-gray-100 text-gray-800 border-gray-300 shadow-2xs cursor-pointer hover:scale-105 active:scale-95"
+              : "bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed opacity-35"
+              }`}
           >
             <ChevronLeft size={18} className="stroke-[2.25]" />
           </button>
@@ -212,11 +211,10 @@ export default function ProductsPage() {
             disabled={!canScrollRight}
             aria-label="Next categories"
             title="Scroll next categories"
-            className={`flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center border transition-all duration-200 select-none ${
-              canScrollRight
-                ? "bg-white hover:bg-gray-100 text-gray-800 border-gray-300 shadow-2xs cursor-pointer hover:scale-105 active:scale-95"
-                : "bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed opacity-35"
-            }`}
+            className={`flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center border transition-all duration-200 select-none ${canScrollRight
+              ? "bg-white hover:bg-gray-100 text-gray-800 border-gray-300 shadow-2xs cursor-pointer hover:scale-105 active:scale-95"
+              : "bg-gray-50 text-gray-300 border-gray-200 cursor-not-allowed opacity-35"
+              }`}
           >
             <ChevronRight size={18} className="stroke-[2.25]" />
           </button>

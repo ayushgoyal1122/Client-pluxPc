@@ -12,6 +12,8 @@ import OrderSuccessPage from "./pages/OrderSuccessPage";
 import MyOrdersPage from "./pages/MyOrdersPage";
 import OrderTrackingPage from "./pages/OrderTrackingPage";
 import WishlistPage from "./pages/WishlistPage";
+import BlogListingPage from "./pages/BlogListingPage";
+import BlogDetailPage from "./pages/BlogDetailPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import { StorefrontProvider } from "./context/StorefrontContext";
 import { CustomerAuthProvider } from "./context/CustomerAuthContext";
@@ -58,7 +60,8 @@ export default function App() {
                   <Route path="gifting" element={<Placeholder title="Gifting Store" />} />
                   <Route path="about" element={<Placeholder title="About PLUXPC" />} />
                   <Route path="wishlist" element={<WishlistPage />} />
-                  <Route path="blog/:id" element={<Placeholder title="Blog Post" />} />
+                  <Route path="blog" element={<BlogListingPage />} />
+                  <Route path="blog/:slug" element={<BlogDetailPage />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Route>
               </Routes>
