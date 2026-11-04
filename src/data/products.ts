@@ -14,7 +14,7 @@ export const IMG = {
   earbuds2: "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=600&q=80&auto=format&fit=crop",
   earbuds3: "https://images.unsplash.com/photo-1598331668826-20cecc596b86?w=600&q=80&auto=format&fit=crop",
   earbuds4: "/images/products/voltix-airdopes-161.jpg",
-  earbuds5: "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=600&q=80&auto=format&fit=crop",
+  earbuds5: "https://images.unsplash.com/photo-1627989580309-bfaf3e58af6f?w=600&q=80&auto=format&fit=crop",
 
   // Headphones
   headphones1: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80&auto=format&fit=crop",
@@ -24,12 +24,12 @@ export const IMG = {
 
   // Neckbands
   neckband1: "/images/products/voltix-rockerz-110.jpg",
-  neckband2: "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=600&q=80&auto=format&fit=crop",
+  neckband2: "/images/products/voltix-neckband-pro.jpg",
 
   // Speakers
   speaker1: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=600&q=80&auto=format&fit=crop",
   speaker2: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&q=80&auto=format&fit=crop",
-  speaker3: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80&auto=format&fit=crop",
+  speaker3: "/images/products/voltix-soundmaster-5000.jpg",
 
   // Smartwatches
   watch1: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80&auto=format&fit=crop",
@@ -39,26 +39,26 @@ export const IMG = {
 
   // Powerbanks
   powerbank1: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=600&q=80&auto=format&fit=crop",
-  powerbank2: "https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=600&q=80&auto=format&fit=crop",
+  powerbank2: "/images/products/voltix-energyshroom-pb300.jpg",
 
   // Chargers & cables
-  charger1: "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=600&q=80&auto=format&fit=crop",
+  charger1: "/images/products/voltix-chargepad-15w.jpg",
 
   // Projectors
   projector1: "/images/products/voltix-cinehead-f1.jpg",
 
   // Soundbars
-  soundbar1: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80&auto=format&fit=crop",
+  soundbar1: "/images/products/voltix-aavante-bar-480.jpg",
 
   // Trimmers / grooming
-  trimmer1: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=600&q=80&auto=format&fit=crop",
+  trimmer1: "/images/products/voltix-slazer-k100.jpg",
 
   // Dashcams
-  dashcam1: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=600&q=80&auto=format&fit=crop",
+  dashcam1: "/images/products/voltix-dashcam-pro.jpg",
 
   // Gaming
   gaming1: "https://images.unsplash.com/photo-1612444530582-fc66183b16f7?w=600&q=80&auto=format&fit=crop",
-  gaming2: "https://images.unsplash.com/photo-1560419015-7c427e8ae5ba?w=600&q=80&auto=format&fit=crop",
+  gaming2: "/images/products/voltix-gx-gaming-buds.jpg",
 
   // Blog
   blog1: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80&auto=format&fit=crop",
@@ -74,15 +74,15 @@ export const IMG = {
 
   // Category images (round/clear bg style)
   catEarbuds: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=300&q=80&auto=format&fit=crop",
-  catNeckbands: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=300&q=80&auto=format&fit=crop",
+  catNeckbands: "/images/products/voltix-neckband-pro.jpg",
   catWatches: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300&q=80&auto=format&fit=crop",
   catHeadphones: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&q=80&auto=format&fit=crop",
   catSpeakers: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=300&q=80&auto=format&fit=crop",
-  catDashcams: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=300&q=80&auto=format&fit=crop",
-  catProjectors: "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=300&q=80&auto=format&fit=crop",
-  catSoundbars: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=80&auto=format&fit=crop",
-  catTrimmers: "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=300&q=80&auto=format&fit=crop",
-  catPowerbanks: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=300&q=80&auto=format&fit=crop",
+  catDashcams: "/images/products/voltix-dashcam-pro.jpg",
+  catProjectors: "/images/products/voltix-cinehead-f1.jpg",
+  catSoundbars: "/images/products/voltix-aavante-bar-480.jpg",
+  catTrimmers: "/images/products/voltix-slazer-k100.jpg",
+  catPowerbanks: "/images/products/voltix-energyshroom-pb300.jpg",
 };
 
 // ─── Hero Banners ─────────────────────────────────────────────────────────────
