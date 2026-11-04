@@ -131,26 +131,28 @@ export default function ProductsPage() {
     (section ? section.charAt(0).toUpperCase() + section.slice(1) : "All Products");
 
   return (
-    <div className="vx-container py-8">
+    <div className="vx-container py-5 sm:py-8">
       {/* Page header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-3.5 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
             {query ? `Search: "${query}"` : categoryLabel}
           </h1>
-          <p className="text-sm text-gray-400 mt-0.5">{filtered.length} products</p>
+          <p className="text-xs sm:text-sm text-gray-400 mt-1 sm:mt-0.5">{filtered.length} products</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
           <button
+            type="button"
             onClick={() => setSidebarOpen((o) => !o)}
-            className="flex items-center gap-2 text-sm font-medium text-gray-700 border border-gray-200 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-200 px-3 py-2.5 sm:py-2 rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors min-h-[40px] sm:min-h-0"
           >
-            <SlidersHorizontal size={15} /> Filter
+            <SlidersHorizontal size={15} className="flex-shrink-0 text-gray-600" />
+            <span>Filter</span>
           </button>
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortOption)}
-            className="text-sm border border-gray-200 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:border-gray-400"
+            className="flex-1 sm:flex-none text-xs sm:text-sm border border-gray-200 rounded-lg px-3 py-2.5 sm:py-2 bg-white text-gray-700 focus:outline-none focus:border-gray-400 min-h-[40px] sm:min-h-0 cursor-pointer"
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -160,7 +162,7 @@ export default function ProductsPage() {
       </div>
 
       {/* Category navigation bar with Previous / Next navigation */}
-      <div className="relative flex items-center gap-1.5 sm:gap-2 mb-6 w-full max-w-full">
+      <div className="relative flex items-center gap-1.5 sm:gap-2 mb-5 sm:mb-6 w-full max-w-full">
         {/* Previous Button */}
         {hasOverflow && (
           <button
