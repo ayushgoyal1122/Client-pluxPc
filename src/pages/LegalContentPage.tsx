@@ -96,16 +96,17 @@ export default function LegalContentPage({ slug }: LegalContentPageProps) {
     window.print();
   };
 
-  // Helper for inline markdown: bold, italic, code, underline, links
+  // Helper for inline markdown: bold, italic, bold+italic, code, underline, strikethrough, links
   const renderInlineStyles = (text: string): ReactNode => {
-    // Replace markdown links first or split tokens
-    const tokens = text.split(/(\[.*?\]\(.*?\)|\*\*.*?\*\*|`.*?`|<u>.*?<\/u>|__.*?__)/g);
+    const tokens = text.split(
+      /(\[.+?\]\(.+?\)|\*\*\*.+?\*\*\*|___.+?___|\*\*.+?\*\*|__.+?__|~~.+?~~|<u>.+?<\/u>|`[^`]+?`|\*[^*]+?\*|_[^_]+?_)/g
+    );
 
     return tokens.map((token, i) => {
       if (!token) return null;
 
       // Link: [label](url)
-      const linkMatch = token.match(/^\[(.*?)\]\((.*?)\)$/);
+      const linkMatch = token.match(/^\[(.+?)\]\((.+?)\)$/);
       if (linkMatch) {
         const [, label, url] = linkMatch;
         return (
@@ -116,15 +117,27 @@ export default function LegalContentPage({ slug }: LegalContentPageProps) {
             rel="noopener noreferrer"
             className="text-[#E31E24] hover:underline font-semibold"
           >
-            {label}
+            {renderInlineStyles(label)}
           </a>
+        );
+      }
+
+      // Bold + Italic: ***text*** or ___text___
+      if (
+        (token.startsWith("***") && token.endsWith("***") && token.length > 6) ||
+        (token.startsWith("___") && token.endsWith("___") && token.length > 6)
+      ) {
+        return (
+          <strong key={i} className="font-bold text-gray-950">
+            <em className="italic">{token.slice(3, -3)}</em>
+          </strong>
         );
       }
 
       // Bold: **text** or __text__
       if (
-        (token.startsWith("**") && token.endsWith("**")) ||
-        (token.startsWith("__") && token.endsWith("__"))
+        (token.startsWith("**") && token.endsWith("**") && token.length > 4) ||
+        (token.startsWith("__") && token.endsWith("__") && token.length > 4)
       ) {
         return (
           <strong key={i} className="font-bold text-gray-950">
@@ -133,8 +146,17 @@ export default function LegalContentPage({ slug }: LegalContentPageProps) {
         );
       }
 
+      // Strikethrough: ~~text~~
+      if (token.startsWith("~~") && token.endsWith("~~") && token.length > 4) {
+        return (
+          <del key={i} className="line-through text-gray-500">
+            {token.slice(2, -2)}
+          </del>
+        );
+      }
+
       // Underline: <u>text</u>
-      if (token.startsWith("<u>") && token.endsWith("</u>")) {
+      if (token.startsWith("<u>") && token.endsWith("</u>") && token.length > 7) {
         return (
           <span key={i} className="underline decoration-gray-400 underline-offset-2">
             {token.slice(3, -4)}
@@ -143,7 +165,7 @@ export default function LegalContentPage({ slug }: LegalContentPageProps) {
       }
 
       // Code: `text`
-      if (token.startsWith("`") && token.endsWith("`")) {
+      if (token.startsWith("`") && token.endsWith("`") && token.length > 2) {
         return (
           <code
             key={i}
@@ -151,6 +173,18 @@ export default function LegalContentPage({ slug }: LegalContentPageProps) {
           >
             {token.slice(1, -1)}
           </code>
+        );
+      }
+
+      // Italic: *text* or _text_
+      if (
+        (token.startsWith("*") && token.endsWith("*") && token.length > 2) ||
+        (token.startsWith("_") && token.endsWith("_") && token.length > 2)
+      ) {
+        return (
+          <em key={i} className="italic text-gray-800">
+            {token.slice(1, -1)}
+          </em>
         );
       }
 
@@ -205,7 +239,7 @@ export default function LegalContentPage({ slug }: LegalContentPageProps) {
             key={index}
             className="text-2xl sm:text-3xl font-extrabold text-gray-950 mt-10 mb-4 pb-3 border-b border-gray-200"
           >
-            {text}
+            {renderInlineStyles(text)}
           </h2>
         );
         return;
@@ -220,7 +254,7 @@ export default function LegalContentPage({ slug }: LegalContentPageProps) {
             key={index}
             className="text-xl sm:text-2xl font-bold text-gray-900 mt-8 mb-3 scroll-mt-24"
           >
-            {text}
+            {renderInlineStyles(text)}
           </h3>
         );
         return;
@@ -235,7 +269,7 @@ export default function LegalContentPage({ slug }: LegalContentPageProps) {
             key={index}
             className="text-lg font-bold text-gray-800 mt-6 mb-2"
           >
-            {text}
+            {renderInlineStyles(text)}
           </h4>
         );
         return;
