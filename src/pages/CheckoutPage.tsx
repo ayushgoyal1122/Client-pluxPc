@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   ShieldCheck,
@@ -156,15 +156,24 @@ export default function CheckoutPage() {
     setPromoError(null);
   };
 
-  // Pre-fill customer name and email once loaded
+  // Track whether customer contact info has been initialized from their account once
+  const initializedCustomerIdRef = useRef<string | null>(null);
+
+  // Pre-fill customer name and email ONCE on initial load
   useEffect(() => {
-    if (customer?.name && !fullName) {
-      setFullName(customer.name);
+    if (customer) {
+      const customerIdentifier = customer.id || customer.email || "authenticated";
+      if (initializedCustomerIdRef.current !== customerIdentifier) {
+        initializedCustomerIdRef.current = customerIdentifier;
+        if (customer.name) {
+          setFullName(customer.name);
+        }
+        if (customer.email) {
+          setContactEmail(customer.email);
+        }
+      }
     }
-    if (customer?.email && !contactEmail) {
-      setContactEmail(customer.email);
-    }
-  }, [customer, fullName, contactEmail]);
+  }, [customer]);
 
   // Redirect guest users to login
   useEffect(() => {
