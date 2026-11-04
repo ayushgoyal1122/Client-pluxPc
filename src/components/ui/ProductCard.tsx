@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Heart, Star, ShoppingBag } from "lucide-react";
+import { Heart, Star, ShoppingBag, Share2 } from "lucide-react";
 import type { Product } from "../../types";
 import { formatPrice, discountPercent, handleImageError } from "../../utils";
 import { useCart } from "../../hooks/useCart";
 import { useWishlist } from "../../hooks/useWishlist";
 import { useCustomerAuth } from "../../context/CustomerAuthContext";
+import ShareModal from "./ShareModal";
 
 interface ProductCardProps {
   product: Product;
@@ -20,6 +21,7 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
   const navigate = useNavigate();
   const location = useLocation();
   const [added, setAdded] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
 
   const discount = product.originalPrice
     ? discountPercent(product.originalPrice, product.price)
@@ -55,8 +57,15 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
     toggle(product);
   };
 
+  const handleShare = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsShareOpen(true);
+  };
+
   return (
-    <Link to={`/products/${product.slug}`} className="vx-card group block flex-shrink-0 w-full">
+    <>
+      <Link to={`/products/${product.slug}`} className="vx-card group block flex-shrink-0 w-full">
       {/* ── Image area ── */}
       <div
         className={`relative overflow-hidden bg-[#F1F3F5] flex items-center justify-center ${
@@ -86,18 +95,32 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
           </div>
         ) : null}
 
-        {/* Wishlist heart */}
-        <button
-          onClick={handleWishlist}
-          aria-label="Wishlist"
-          className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-white/90 flex items-center justify-center shadow-sm
-                     hover:bg-white transition-colors"
-        >
-          <Heart
-            size={14}
-            className={wishlisted ? "text-red-500 fill-red-500" : "text-gray-500"}
-          />
-        </button>
+        {/* Top-right Actions: Wishlist & Share */}
+        <div className="absolute top-2 right-2 z-10 flex flex-col gap-1.5">
+          {/* Wishlist heart */}
+          <button
+            type="button"
+            onClick={handleWishlist}
+            aria-label="Wishlist"
+            className="w-7 h-7 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-xs hover:bg-white transition-colors cursor-pointer"
+          >
+            <Heart
+              size={13}
+              className={wishlisted ? "text-red-500 fill-red-500" : "text-gray-500"}
+            />
+          </button>
+
+          {/* Share button */}
+          <button
+            type="button"
+            onClick={handleShare}
+            aria-label={`Share ${product.name}`}
+            title="Share Product"
+            className="w-7 h-7 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center shadow-xs hover:bg-white hover:text-volt-red text-gray-500 transition-colors cursor-pointer"
+          >
+            <Share2 size={13} />
+          </button>
+        </div>
 
         {/* Feature strip */}
         {product.featureTag && (
@@ -144,6 +167,14 @@ export default function ProductCard({ product, compact = false }: ProductCardPro
         </div>
       </div>
     </Link>
+
+    {/* Share Modal Dialog */}
+    <ShareModal
+      product={product}
+      isOpen={isShareOpen}
+      onClose={() => setIsShareOpen(false)}
+    />
+    </>
   );
 }
 

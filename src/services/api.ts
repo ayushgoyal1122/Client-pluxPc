@@ -2,7 +2,7 @@
 // Connects to the Node/Express/MongoDB backend with safe fallback
 // to static mock data if the backend is offline.
 
-import type { Product, Category, ApiResponse } from "../types";
+import type { Product, Category, ApiResponse, LegalPage } from "../types";
 import { allProducts, shopCategories } from "../data/products";
 
 export const DEFAULT_PRODUCTION_API_URL = "https://pluxpc-api.onrender.com";
@@ -495,12 +495,13 @@ export async function createPaymentOrder(
     postalCode: string;
   },
   token?: string | null,
-  promoCode?: string
+  promoCode?: string,
+  contactEmail?: string
 ) {
   return apiFetch("/api/payments/create-order", {
     method: "POST",
     headers: customerHeaders(token),
-    body: JSON.stringify({ deliveryAddress, promoCode }),
+    body: JSON.stringify({ deliveryAddress, promoCode, contactEmail }),
   });
 }
 
@@ -621,6 +622,11 @@ export async function getBlogCategories() {
 
 export async function getBlogBySlug(slug: string) {
   return apiFetch<any>(`/api/blogs/${encodeURIComponent(slug)}`);
+}
+
+// ── Legal Content API Functions ──
+export async function getPublicLegalPage(slug: string) {
+  return apiFetch<{ success: boolean; data: LegalPage }>(`/api/legal/${encodeURIComponent(slug)}`);
 }
 
 export { BASE_URL };

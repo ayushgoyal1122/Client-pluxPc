@@ -99,7 +99,10 @@ export default function ProductsPage() {
 
   const filtered = useMemo(() => {
     let list = [...allProducts];
-    if (category) list = list.filter((p) => p.category === category);
+    if (category) {
+      const cleanCat = category.toLowerCase().trim();
+      list = list.filter((p) => p.category?.toLowerCase().trim() === cleanCat);
+    }
     if (section) list = list.filter((p) => p.section?.includes(section));
     if (query) list = list.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()));
 

@@ -14,7 +14,7 @@ export const IMG = {
   earbuds2: "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?w=600&q=80&auto=format&fit=crop",
   earbuds3: "https://images.unsplash.com/photo-1598331668826-20cecc596b86?w=600&q=80&auto=format&fit=crop",
   earbuds4: "/images/products/voltix-airdopes-161.jpg",
-  earbuds5: "https://images.unsplash.com/photo-1617005082133-548c4dd27f35?w=600&q=80&auto=format&fit=crop",
+  earbuds5: "https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=600&q=80&auto=format&fit=crop",
 
   // Headphones
   headphones1: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80&auto=format&fit=crop",

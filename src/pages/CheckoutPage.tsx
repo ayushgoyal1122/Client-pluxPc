@@ -9,6 +9,7 @@ import {
   AlertCircle,
   MapPin,
   Phone,
+  Mail,
   User as UserIcon,
   Tag,
   CheckCircle2,
@@ -33,6 +34,7 @@ export default function CheckoutPage() {
   const { items, itemCount, subtotal, shippingFee, loading: cartLoading, refreshCart } = useCart();
 
   const [fullName, setFullName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [street, setStreet] = useState("");
   const [city, setCity] = useState("");
@@ -154,12 +156,15 @@ export default function CheckoutPage() {
     setPromoError(null);
   };
 
-  // Pre-fill customer name once loaded
+  // Pre-fill customer name and email once loaded
   useEffect(() => {
     if (customer?.name && !fullName) {
       setFullName(customer.name);
     }
-  }, [customer, fullName]);
+    if (customer?.email && !contactEmail) {
+      setContactEmail(customer.email);
+    }
+  }, [customer, fullName, contactEmail]);
 
   // Redirect guest users to login
   useEffect(() => {
@@ -187,6 +192,12 @@ export default function CheckoutPage() {
     // Form Validations
     if (!fullName.trim()) {
       setErrorMessage("Please enter your full name.");
+      return;
+    }
+    const cleanEmail = contactEmail.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+      setErrorMessage("Please enter a valid order notification email address.");
       return;
     }
     const cleanPhone = phone.replace(/\D/g, "");
@@ -234,7 +245,8 @@ export default function CheckoutPage() {
           postalCode: postalCode.trim(),
         },
         token,
-        appliedPromo ? appliedPromo.code : undefined
+        appliedPromo ? appliedPromo.code : undefined,
+        cleanEmail
       );
 
       if (!res.success) {
@@ -268,7 +280,7 @@ export default function CheckoutPage() {
         },
         prefill: {
           name: fullName.trim(),
-          email: customer?.email || "",
+          email: cleanEmail,
           contact: cleanPhone,
         },
         theme: {
@@ -458,6 +470,26 @@ export default function CheckoutPage() {
                       className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 text-xs text-gray-900 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
                     />
                   </div>
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                    Order Notification Email <span className="text-volt-red">*</span>
+                  </label>
+                  <div className="relative">
+                    <Mail size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="email"
+                      required
+                      value={contactEmail}
+                      onChange={(e) => setContactEmail(e.target.value)}
+                      placeholder="e.g. yourname@example.com"
+                      className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 text-xs text-gray-900 focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition-colors"
+                    />
+                  </div>
+                  <p className="text-[11px] text-gray-500 mt-1">
+                    Order confirmation, invoice, and tracking alerts will be delivered to this email.
+                  </p>
                 </div>
 
                 <div>

@@ -14,6 +14,7 @@ import {
   Minus,
   Check,
   Zap,
+  Share2,
 } from "lucide-react";
 import type { Product } from "../types";
 import { fetchProductBySlug } from "../services/api";
@@ -26,6 +27,7 @@ import ProductCard from "../components/ui/ProductCard";
 import ProductImageGallery from "../components/product/ProductImageGallery";
 import ProductStorytellingPosters from "../components/product/ProductStorytellingPosters";
 import ProductSpecificStory from "../components/product/ProductSpecificStory";
+import ShareModal from "../components/ui/ShareModal";
 import { resolveProductMedia } from "../utils/productMediaResolver";
 
 export default function ProductDetailPage() {
@@ -43,6 +45,7 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
   const [added, setAdded] = useState<boolean>(false);
+  const [isShareOpen, setIsShareOpen] = useState<boolean>(false);
 
   // Scroll to top and load product on slug change
   useEffect(() => {
@@ -292,14 +295,24 @@ export default function ProductDetailPage() {
 
           {/* ── Right Column: Product Info & Purchasing ── */}
           <div className="lg:col-span-6 flex flex-col justify-start">
-            {/* Category Pill */}
-            <div className="mb-2">
+            {/* Category Pill and Share Action */}
+            <div className="flex items-center justify-between gap-3 mb-2">
               <Link
                 to={`/products?category=${product.category}`}
                 className="inline-block text-xs uppercase tracking-wider font-bold text-volt-red bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded-md transition-colors"
               >
                 {product.categoryLabel}
               </Link>
+              <button
+                type="button"
+                onClick={() => setIsShareOpen(true)}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-gray-900 bg-gray-100/80 hover:bg-gray-200/80 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+                aria-label="Share this product"
+                title="Share this product"
+              >
+                <Share2 size={13} className="text-gray-500" />
+                <span>Share</span>
+              </button>
             </div>
 
             {/* Product Title */}
@@ -453,13 +466,24 @@ export default function ProductDetailPage() {
                   type="button"
                   onClick={handleWishlistToggle}
                   aria-label="Save to Wishlist"
-                  className={`p-3.5 rounded-xl border transition-colors flex items-center justify-center ${
+                  className={`p-3.5 rounded-xl border transition-colors flex items-center justify-center cursor-pointer ${
                     wishlisted
                       ? "border-red-200 bg-red-50 text-red-500"
                       : "border-gray-200 hover:border-gray-300 text-gray-600 hover:text-gray-900"
                   }`}
                 >
                   <Heart size={20} className={wishlisted ? "fill-red-500" : ""} />
+                </button>
+
+                {/* Primary Action Share Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsShareOpen(true)}
+                  aria-label="Share product"
+                  title="Share product with friends"
+                  className="p-3.5 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors flex items-center justify-center cursor-pointer"
+                >
+                  <Share2 size={20} />
                 </button>
               </div>
             </div>
@@ -546,6 +570,13 @@ export default function ProductDetailPage() {
             </div>
           </div>
         )}
+
+        {/* Product Social Sharing Modal */}
+        <ShareModal
+          product={product}
+          isOpen={isShareOpen}
+          onClose={() => setIsShareOpen(false)}
+        />
       </div>
     </div>
   );

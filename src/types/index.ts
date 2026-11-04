@@ -313,3 +313,19 @@ export interface BlogFeaturedResponse {
   popular: Blog[];
 }
 
+export interface LegalPage {
+  _id?: string;
+  slug: "terms-and-conditions" | "privacy-policy";
+  title: string;
+  content: string;
+  status: "published" | "draft";
+  characterCount: number;
+  lastUpdatedBy?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+

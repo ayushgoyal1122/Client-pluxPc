@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from "react-router-dom";
 import RootLayout from "./layouts/RootLayout";
 import HomePage from "./pages/HomePage";
 import ProductsPage from "./pages/ProductsPage";
@@ -14,6 +14,7 @@ import OrderTrackingPage from "./pages/OrderTrackingPage";
 import WishlistPage from "./pages/WishlistPage";
 import BlogListingPage from "./pages/BlogListingPage";
 import BlogDetailPage from "./pages/BlogDetailPage";
+import LegalContentPage from "./pages/LegalContentPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import { StorefrontProvider } from "./context/StorefrontContext";
 import { CustomerAuthProvider } from "./context/CustomerAuthContext";
@@ -62,6 +63,10 @@ export default function App() {
                   <Route path="wishlist" element={<WishlistPage />} />
                   <Route path="blog" element={<BlogListingPage />} />
                   <Route path="blog/:slug" element={<BlogDetailPage />} />
+                  <Route path="terms-and-conditions" element={<LegalContentPage slug="terms-and-conditions" />} />
+                  <Route path="privacy-policy" element={<LegalContentPage slug="privacy-policy" />} />
+                  <Route path="terms" element={<Navigate to="/terms-and-conditions" replace />} />
+                  <Route path="privacy" element={<Navigate to="/privacy-policy" replace />} />
                   <Route path="*" element={<NotFoundPage />} />
                 </Route>
               </Routes>
